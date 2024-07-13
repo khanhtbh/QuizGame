@@ -6,7 +6,8 @@ async function getConfigs() {
 
 getConfigs();
 
-
+const enterGameComponent = document.getElementById('game-id-input');
+const playerName = document.getElementById('player-name');
 const gameIdInput = document.getElementById('game-id');
 const connectButton = document.getElementById('connect-button');
 const waitingScreen = document.getElementById('waiting-screen');
@@ -22,43 +23,45 @@ let score = 0;
 
 connectButton.addEventListener('click', () => {
     gameId = gameIdInput.value;
-    if (gameId) {
-        // Connect to WebSocket
-        websocket = new WebSocket(`${configs.websocket_host}/game/${gameId}`);
-
-        websocket.onopen = () => {
-            console.log('WebSocket connection opened');
-            gameIdInput.style.display = 'none';
-            connectButton.style.display = 'none';
-            waitingScreen.style.display = 'block';
-        };
-
-        websocket.onmessage = (event) => {
-            if (event.type === 'gameStarted') {
-                waitingScreen.style.display = 'none';
-                questionScreen.style.display = 'block';
-                displayQuestion(data.question);
-            } else if (event.type === 'answerCorrect') {
-                score++;
-                scoreElement.textContent = score;
-                displayQuestion(data.nextQuestion);
-            } else if (event.type === 'answerIncorrect') {
-                displayQuestion(data.nextQuestion);
-            } else if (event.type === 'leaderboardUpdate') {
-                updateLeaderboard(data.leaderboard);
-            }
-        };
-
-        websocket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        websocket.onclose = () => {
-            console.log('WebSocket connection closed');
-        };
-    } else {
+    if (gameId === null) {
         alert('Please enter a valid Game ID.');
+        return;
     }
+    // Connect to WebSocket
+    websocket = new WebSocket(`${configs.websocket_host}?game=${gameId}&player=${playerName.value}`);
+
+    websocket.onopen = () => {
+        console.log('WebSocket connection opened');
+        enterGameComponent.style.display = 'none';
+        waitingScreen.style.display = 'block';
+    };
+
+    websocket.onmessage = (event) => {
+        let data = JSON.parse(event.data);
+        let gameEvent = data['game-event'];
+        if (gameEvent === 'gameStarted') {
+            waitingScreen.style.display = 'none';
+            questionScreen.style.display = 'block';
+            displayQuestion(data.question);
+        } else if (gameEvent === 'answerCorrect') {
+            score++;
+            scoreElement.textContent = score;
+            displayQuestion(data.nextQuestion);
+        } else if (gameEvent === 'answerIncorrect') {
+            displayQuestion(data.nextQuestion);
+        } else if (gameEvent === 'leaderboardUpdate') {
+            updateLeaderboard(data.leaderboard);
+        }
+    };
+
+    websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    websocket.onclose = () => {
+        console.log('WebSocket connection closed');
+    };
+
 });
 
 function displayQuestion(question) {

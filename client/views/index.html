@@ -1,35 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Multiplayer Game</title>
-  <link rel="stylesheet" href="./res/index.css">
+    <title>Multiplayer Game</title>
+    <link rel="stylesheet" href="./res/index.css">
 </head>
+
 <body>
-  <div class="container">
-    <div id="game-id-input">
-      <h2>Enter Game ID</h2>
-      <input type="text" id="game-id" placeholder="Game ID">
-      <button id="connect-button">Connect</button>
-    </div>
-    <div id="waiting-screen" style="display: none;">
-      <h2 class="waiting-screen">Waiting for game to start...</h2>
-    </div>
-    <div id="question-screen" style="display: none;">
-      <div class="question-screen">
-        <h2 class="question" id="question-text"></h2>
-        <div class="answers" id="answers-container">
-          </div>
-        <div class="score">
-          <span>Your Score:</span> <span id="score">0</span>
+    <div class="container">
+        <div id="game-id-input">
+            <h2>Join Game</h2>
+            <div><input type="text" id="game-id" placeholder="Game ID"></div>
+            <div><input type="text" id="player-name" placeholder="Your Name"></div>
+            <button type="button" id="connect-button">Connect</button>
         </div>
-        <div class="leaderboard">
-          <h3>Leaderboard</h3>
-          <ul id="leaderboard-list">
-          </ul>
+        <div id="waiting-screen" style="display: none;">
+            <h2 class="waiting-screen">Waiting for game to start...</h2>
         </div>
-      </div>
+        <div id="question-screen" style="display: none;">
+            <div class="question-screen">
+                <h2 class="question" id="question-text"></h2>
+                <div class="answers" id="answers-container">
+                </div>
+                <div class="score">
+                    <span>Your Score:</span> <span id="score">0</span>
+                </div>
+                <div class="leaderboard">
+                    <h3>Leaderboard</h3>
+                    <ul id="leaderboard-list">
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <script src="./scripts/index.js"></script>
+    <script src="./scripts/index.js"></script>
 </body>
+
 </html>

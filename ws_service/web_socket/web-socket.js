@@ -17,6 +17,8 @@ class WebSocket {
 
 			// TODO: Check connection url and add client
 
+			console.log("Client Connected: ", incomingMsg);
+
 			ws.on('message', function incoming(message) {
 				
 			});
@@ -25,7 +27,9 @@ class WebSocket {
 				
 			});
 
-			ws.send('You connected to our server');
+			ws.send(JSON.stringify({
+				"game-event": "connected"
+			}));
 		});
 	}
 }
