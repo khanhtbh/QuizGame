@@ -18,8 +18,10 @@ const scoreElement = document.getElementById('score');
 const leaderboardList = document.getElementById('leaderboard-list');
 
 let websocket = null;
-let gameId = null;
-let score = 0;
+var gameId = null;
+var numberOfQuestions = 0; 
+var userId = `u_${(Math.round(Date.now())).toString(36)}`;
+var score = 0;
 
 connectButton.addEventListener('click', () => {
     gameId = gameIdInput.value;
@@ -28,7 +30,7 @@ connectButton.addEventListener('click', () => {
         return;
     }
     // Connect to WebSocket
-    websocket = new WebSocket(`${configs.websocket_host}?game=${gameId}&player=${playerName.value}`);
+    websocket = new WebSocket(`${configs.websocket_host}?game=${gameId}&role=player&player_name=${playerName.value}&user_id=${userId}`);
 
     websocket.onopen = () => {
         console.log('WebSocket connection opened');
@@ -39,7 +41,7 @@ connectButton.addEventListener('click', () => {
     websocket.onmessage = (event) => {
         let data = JSON.parse(event.data);
         let gameEvent = data['game-event'];
-        if (gameEvent === 'gameStarted') {
+        if (gameEvent === 'connected') {
             waitingScreen.style.display = 'none';
             questionScreen.style.display = 'block';
             displayQuestion(data.question);

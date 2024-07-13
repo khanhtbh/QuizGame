@@ -1,8 +1,7 @@
 var QuestionRepos = require('../repositories/QuestionRepos');
 var Game = require('../models/game').Game;
 var GameState = require('../models/game').GameState;
-
-var redisClient = require('../adapters/RedisClient');
+var redisClient = require('../adapters/redis-client');
 
 class GameController {
     constructor(configs) {
@@ -23,11 +22,10 @@ class GameController {
             await redisClient.hSet('game:' + game.id, 'name', game_name);
             await redisClient.hSet('game:' + game.id, 'state', 'ready'); // Set state to 'ready'
             await redisClient.hSet('game:' + game.id, 'questions', JSON.stringify(questions));
-            await redisClient.sAdd('game:' + game.id + ':players', JSON.stringify([])); // Initialize players set
+            // await redisClient.sAdd('game:' + game.id + ':players', JSON.stringify([]));
 
             // Initialize leaderboard as an empty sorted set
-            await redisClient.zAdd('game:' + game.id + ':leaderboard', {score: 0, value: "dummy"}); // Empty sorted set
-
+            // await redisClient.zAdd('game:' + game.id + ':leaderboard', {score: 0, value: "dummy"});
             // Respond with game ID
             res.status(200).json({ 
                 success: true,
