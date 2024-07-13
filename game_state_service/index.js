@@ -1,0 +1,19 @@
+var bodyParser = require('body-parser')
+  , express = require('express')
+  , APIs = require('./src/usecases/game-apis');
+var configs = require('./config/configs.json');
+var redisClient = require('./src/adapters/RedisClient');
+
+let startService = async () => {
+    console.log("STARTING GAME STATE SERVICE...");
+    await redisClient.connect();
+    var app = express();
+    app.use(bodyParser.urlencoded({ extended: true }));
+	app.use(bodyParser.json());
+	app.use("/api/v1", APIs);
+    app.listen(configs.port, function() {
+        console.log("GAME STATE SERVICE STARTED");
+    });
+}
+
+startService();

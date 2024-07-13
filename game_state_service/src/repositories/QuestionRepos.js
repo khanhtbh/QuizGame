@@ -6,3 +6,5 @@ class QuestionRepos {
         return _.sampleSize(QuestionBank, numberOfQuestions);
     }
 }
+
+module.exports = QuestionRepos;

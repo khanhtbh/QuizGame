@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "redis": "^4.6.15",
+    "uuid": "^10.0.0"
   }
 }

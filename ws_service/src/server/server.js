@@ -1,5 +1,5 @@
 var fs = require('fs')
- ,	WebSocket = require('../../web_socket/web-socket').WebSocket;
+ ,	WebSocket = require('../web_socket/web-socket').WebSocket;
 
 class Server {
 	constructor(configs, options) {
