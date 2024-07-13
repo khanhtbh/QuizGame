@@ -1,4 +1,4 @@
-var Server = require('./server/server').Server
+var Server = require('./src/server/server').Server
 , configs 	= require('./config/configs.json');
 
 let start_service = () => {
