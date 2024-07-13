@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Game Admin</title>
+    <link rel="stylesheet" href="./res/admin.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="section" id="admin-section">
+            <h1>Create a New Game</h1>
+      
+            <div class="input-group">
+              <label for="game-name">Game Name:</label>
+              <input type="text" id="game-name" name="game-name">
+            </div>
+      
+            <div class="input-group">
+              <label for="num-questions">Number of Questions:</label>
+              <input type="number" id="num-questions" name="num-questions" min="1">
+            </div>
+      
+            <button type="button" id="create-game-button" class="create-game-button">Create Game</button>
+          </div>
+
+        <div class="section hidden" id="leaderboard-section">
+            <h1 id="leaderboard-title">Leaderboard</h1>
+
+            <table id="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            <button id="end-game-button" class="end-game-button">End Game</button>
+        </div>
+    </div>
+    <script src="./scripts/admin.js"></script>
+</body>
+
+</html>

@@ -1,7 +1,6 @@
 var QuestionRepos = require('../repositories/QuestionRepos');
 var Game = require('../models/game').Game;
 var GameState = require('../models/game').GameState;
-var UUID = require('uuid');
 
 var redisClient = require('../adapters/RedisClient');
 
@@ -18,7 +17,8 @@ class GameController {
         }
         try {
             var questions = QuestionRepos.getRandomQuestions(no_questions);
-            var game = new Game(UUID.v4(), game_name, questions);
+            var gameId = (Math.round(Date.now())).toString(36);
+            var game = new Game(gameId, game_name, questions);
             // Store game data in Redis
             await redisClient.hSet('game:' + game.id, 'name', game_name);
             await redisClient.hSet('game:' + game.id, 'state', 'ready'); // Set state to 'ready'
@@ -33,7 +33,8 @@ class GameController {
                 success: true,
                 code: 1,
                 data: {
-                    game_id: game.id 
+                    game_id: game.id ,
+                    game_name: game_name
                 }
             });
         }

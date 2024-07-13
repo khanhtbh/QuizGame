@@ -1,4 +1,5 @@
 {
   "port": 4000,
-  "websocket_host": "ws://localhost:3000"
+  "websocket_host": "ws://localhost:3000",
+  "game_service_host": "http://localhost:3001"
 }
