@@ -11,26 +11,39 @@ const playerName = document.getElementById('player-name');
 const gameIdInput = document.getElementById('game-id');
 const connectButton = document.getElementById('connect-button');
 const waitingScreen = document.getElementById('waiting-screen');
-const questionScreen = document.getElementById('question-screen');
-const questionText = document.getElementById('question-text');
-const answersContainer = document.getElementById('answers-container');
+const questionContainer = document.getElementById('question-container');
 const scoreElement = document.getElementById('score');
 const leaderboardList = document.getElementById('leaderboard-list');
 
 let websocket = null;
 var gameId = null;
 var numberOfQuestions = 0; 
+var currentQuestionIdx = -1;
 var userId = `u_${(Math.round(Date.now())).toString(36)}`;
 var score = 0;
+var question = null;
 
-connectButton.addEventListener('click', () => {
+connectButton.addEventListener('click', async () => {
     gameId = gameIdInput.value;
     if (gameId === null) {
         alert('Please enter a valid Game ID.');
         return;
     }
+
+    const response = await fetch(`${configs.game_service_host}/api/v1/games/${gameId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) { 
+        alert("Invalid Game ID. Please enter a valid Game ID.");
+        return;
+    }
+
+    gameInfoData = await response.json();
+    numberOfQuestions = gameInfoData.data.no_questions;
     // Connect to WebSocket
-    websocket = new WebSocket(`${configs.websocket_host}?game=${gameId}&role=player&player_name=${playerName.value}&user_id=${userId}`);
+    websocket = new WebSocket(`${configs.websocket_host}?game_id=${gameId}&role=player&player_name=${playerName.value}&user_id=${userId}`);
 
     websocket.onopen = () => {
         console.log('WebSocket connection opened');
@@ -42,17 +55,31 @@ connectButton.addEventListener('click', () => {
         let data = JSON.parse(event.data);
         let gameEvent = data['game_event'];
         if (gameEvent === 'connected') {
+            gameIdInput.style.display = 'none';
+            waitingScreen.style.display = 'block';
+            websocket.send(JSON.stringify({ 
+                command: 'get_question',
+                data: {
+                    game_id: gameId,
+                    user_id: userId,
+                    current_question_no: currentQuestionIdx  
+                }
+            }));
+        } 
+        else if (gameEvent === 'receive_question') {
             waitingScreen.style.display = 'none';
-            questionScreen.style.display = 'block';
-            displayQuestion(data.question);
-        } else if (gameEvent === 'answerCorrect') {
+            questionContainer.style.display = 'block';   
+            let eventData = data["data"];
+            question = eventData.question;
+            current_question_no = eventData.current_question_no;
+            displayQuestion(question);
+        }
+        else if (gameEvent === 'answerCorrect') {
             score++;
             scoreElement.textContent = score;
             displayQuestion(data.nextQuestion);
         } else if (gameEvent === 'answerIncorrect') {
             displayQuestion(data.nextQuestion);
-        } else if (gameEvent === 'leaderboardUpdate') {
-            updateLeaderboard(data.leaderboard);
         }
     };
 
@@ -67,25 +94,14 @@ connectButton.addEventListener('click', () => {
 });
 
 function displayQuestion(question) {
-    questionText.textContent = question.text;
-    answersContainer.innerHTML = '';
-    question.answers.forEach((answer) => {
-        const answerElement = document.createElement('div');
-        answerElement.classList.add('answer');
-        answerElement.textContent = answer.text;
-        answerElement.addEventListener('click', () => {
-            websocket.send(JSON.stringify({ type: 'answer', answerId: answer.id }));
-        });
-        answersContainer.appendChild(answerElement);
-    });
-}
-
-function updateLeaderboard(leaderboard) {
-    leaderboardList.innerHTML = '';
-    leaderboard.forEach((entry) => {
-        const listItem = document.createElement('li');
-        listItem.classList.add('leaderboard-entry');
-        listItem.textContent = `${entry.playerName}: ${entry.score}`;
-        leaderboardList.appendChild(listItem);
-    });
+    const questionText = document.getElementById('question-text');
+    const optionA = document.getElementById('option-a-text');
+    const optionB = document.getElementById('option-b-text');
+    const optionC = document.getElementById('option-c-text');
+    const optionD = document.getElementById('option-d-text');
+    optionA.innerHTML = question.A;
+    optionB.innerHTML = question.B;
+    optionC.innerHTML = question.C;
+    optionD.innerHTML = question.D;
+    questionText.innerHTML = question.question;   
 }

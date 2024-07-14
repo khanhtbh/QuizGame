@@ -17,21 +17,31 @@
         <div id="waiting-screen" style="display: none;">
             <h2 class="waiting-screen">Waiting for game to start...</h2>
         </div>
-        <div id="question-screen" style="display: none;">
-            <div class="question-screen">
-                <h2 class="question" id="question-text"></h2>
-                <div class="answers" id="answers-container">
-                </div>
-                <div class="score">
-                    <span>Your Score:</span> <span id="score">0</span>
-                </div>
-                <div class="leaderboard">
-                    <h3>Leaderboard</h3>
-                    <ul id="leaderboard-list">
-                    </ul>
-                </div>
+        <div id="question-container" class="question-container" style="display: none;">
+            <div class="score">Score: <span id="player-score">0</span></div> <div class="question-content">
+              <h2>Question:</h2>
+              <p id="question-text"></p>
+              <div class="options">
+                <label class="option">
+                  <input type="radio" name="answer" id="option-a" value="A">
+                  <div id="option-a-text"></div>
+                </label>
+                <label class="option">
+                  <input type="radio" name="answer" id="option-b" value="B">
+                  <div id="option-b-text"></div>
+                </label>
+                <label class="option">
+                  <input type="radio" name="answer" id="option-c" value="C">
+                  <div id="option-c-text"></div>
+                </label>
+                <label class="option">
+                  <input type="radio" name="answer" id="option-d" value="D">
+                  <div id="option-d-text"></div>
+                </label>
+              </div>
+              <button type="button" id="submit-answer">Submit Answer</button>
             </div>
-        </div>
+          </div>
     </div>
     <script src="./scripts/player.js"></script>
 </body>

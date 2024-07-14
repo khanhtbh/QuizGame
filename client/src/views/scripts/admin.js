@@ -43,7 +43,7 @@ createGameButton.addEventListener('click', async () => {
         leaderboardSection.classList.remove('hidden');
 
         // Connect to WebSocket
-        ws = new WebSocket(`${configs.websocket_host}?game=${gameId}&role=admin`); // Replace with your server URL
+        ws = new WebSocket(`${configs.websocket_host}?game_id=${gameId}&role=admin`); // Replace with your server URL
 
         // Handle WebSocket connection events
         ws.onopen = () => {
