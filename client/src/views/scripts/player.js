@@ -12,8 +12,9 @@ const gameIdInput = document.getElementById('game-id');
 const connectButton = document.getElementById('connect-button');
 const waitingScreen = document.getElementById('waiting-screen');
 const questionContainer = document.getElementById('question-container');
-const scoreElement = document.getElementById('score');
+const scoreElement = document.getElementById('player-score');
 const leaderboardList = document.getElementById('leaderboard-list');
+const submitAnswerButton = document.getElementById('submit-answer');
 
 let websocket = null;
 var gameId = null;
@@ -54,6 +55,7 @@ connectButton.addEventListener('click', async () => {
     websocket.onmessage = (event) => {
         let data = JSON.parse(event.data);
         let gameEvent = data['game_event'];
+        let eventData = data["data"];
         if (gameEvent === 'connected') {
             gameIdInput.style.display = 'none';
             waitingScreen.style.display = 'block';
@@ -69,17 +71,27 @@ connectButton.addEventListener('click', async () => {
         else if (gameEvent === 'receive_question') {
             waitingScreen.style.display = 'none';
             questionContainer.style.display = 'block';   
-            let eventData = data["data"];
             question = eventData.question;
-            current_question_no = eventData.current_question_no;
+            currentQuestionIdx = eventData.question_no;
             displayQuestion(question);
         }
-        else if (gameEvent === 'answerCorrect') {
-            score++;
-            scoreElement.textContent = score;
-            displayQuestion(data.nextQuestion);
-        } else if (gameEvent === 'answerIncorrect') {
-            displayQuestion(data.nextQuestion);
+        else if (gameEvent === 'answer_result') {
+            var correctAnswer = eventData.correct_answer;
+            score += eventData.award_score;
+            var message = `Your answer is correct. You have ${score} points.`;
+            if (eventData.award_score == 0) {
+                message = `Your answer is wrong. The correct answer is ${correctAnswer}. You have ${score} points.`;
+            }
+            alert(message);
+            scoreElement.innerText = score;
+            websocket.send(JSON.stringify({ 
+                command: 'get_question',
+                data: {
+                    game_id: gameId,
+                    user_id: userId,
+                    current_question_no: currentQuestionIdx  
+                }
+            }));
         }
     };
 
@@ -93,7 +105,23 @@ connectButton.addEventListener('click', async () => {
 
 });
 
+
+submitAnswerButton.addEventListener('click', () => {
+    // Get the selected answer
+    let selectedAnswer = document.querySelector('input[name="answer"]:checked').value;
+    websocket.send(JSON.stringify({ 
+        command: 'answer_question',
+        data: {
+            game_id: gameId,
+            user_id: userId,
+            current_question_no: currentQuestionIdx,
+            answer: selectedAnswer  
+        }
+    }));
+  });
+
 function displayQuestion(question) {
+    const questionTitle = document.getElementById('question-title');
     const questionText = document.getElementById('question-text');
     const optionA = document.getElementById('option-a-text');
     const optionB = document.getElementById('option-b-text');
@@ -103,5 +131,10 @@ function displayQuestion(question) {
     optionB.innerHTML = question.B;
     optionC.innerHTML = question.C;
     optionD.innerHTML = question.D;
+    const prevCheck = document.querySelector('input[name="answer"]:checked');
+    if (prevCheck) {
+        prevCheck.checked = false;
+    }
     questionText.innerHTML = question.question;   
+    questionTitle.innerHTML = `Question ${currentQuestionIdx + 1} of ${numberOfQuestions}`;
 }
