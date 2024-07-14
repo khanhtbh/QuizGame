@@ -103,21 +103,15 @@ const updateLeaderboard = (leaderboard) => {
 
 // End Game
 endGameButton.addEventListener('click', async () => {
-    const response = await fetch(`${configs.game_service_host}/api/v1/games/${gameId}`, { method: 'DELETE' });
-    if (response.ok) {
-        // Show admin section, hide leaderboard section
-        leaderboardSection.classList.add('hidden');
-        adminSection.classList.remove('hidden');
-
-        // Close the WebSocket connection
-        if (ws) {
-            ws.close();
-            ws = null;
+    ws.send(JSON.stringify({ 
+        command: 'end_game',
+        data: {
+            user_id: 'admin',
+            game_id: gameId
         }
-
-        // Reset gameId
-        gameId = null;
-    } else {
-        console.error('Error ending game:', response.status);
-    }
+    }));
+    fetchLeaderboard();
+    endGameButton.classList.remove('end-game-button-enabled');
+    endGameButton.classList.add('end-game-button-disabled');
+    endGameButton.disabled = true;
 });

@@ -10,6 +10,16 @@ body {
 .section {
   margin-bottom: 30px;
 }
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group > * {
+  flex: 1;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -23,19 +33,32 @@ input {
   margin-bottom: 10px;
   border: 1px solid #ccc;
 }
+
 button {
-  padding: 10px;
+  padding: 10px 20px;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
+  margin-top: 20px;
 }
+
 .create-game-button {
   background-color: #4caf50;
   color: white;
 }
-.end-game-button {
-  background-color: #f44336; /* Red color for end game */
+
+.end-game-button-enabled {
+  margin-top: 20px;
+  background-color: #f44336; 
   color: white;
 }
+
+.end-game-button-disabled {
+  margin-top: 20px;
+  background-color: #ccc; /* Red color for end game */
+  color: gray;
+}
+
 table {
   border-collapse: collapse;
   width: 50%;

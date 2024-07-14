@@ -17,6 +17,7 @@ class MessageController {
 
 		this.handleGetQuestion = this.handleGetQuestion.bind(this);
 		this.handleAnswerQuestion = this.handleAnswerQuestion.bind(this);
+		this.handleEndGame = this.handleEndGame.bind(this);
 		/**
 		 * 
 		 * @type {Object}
@@ -63,6 +64,8 @@ class MessageController {
 					case 'answer_question':
 						me.handleAnswerQuestion(commandData);
 						break;
+					case 'end_game':
+						me.handleEndGame(commandData);
 					default:
 						break;
 				}
@@ -96,6 +99,21 @@ class MessageController {
 	handleAnswerQuestion = (commandData) => {
 		console.log("handleAnswerQuestion", commandData);
 		this.redisClient.publish('answer_question', JSON.stringify(commandData));
+	}
+
+	handleEndGame = (commandData) => {
+		console.log("handleEndGame", commandData);
+		let game_id = commandData.game_id;
+		for (const [key, value] of Object.entries(this.clients)) {
+			console.log("key-value", key, value);
+			if (key.indexOf(game_id) !== -1) {
+				value.send(JSON.stringify({
+					game_event: "user_end_quizz"
+				}));
+				value.close();
+			}
+		}
+		this.clients = {};
 	}
 
 
