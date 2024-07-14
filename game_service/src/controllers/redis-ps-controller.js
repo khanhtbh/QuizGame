@@ -7,7 +7,6 @@ class RedisPubSubController {
         this.subscriber = redisClient.duplicate();
         this.subscriber.connect();
         this.subscriber.subscribe('user_join', this.onUserJoin);
-        console.log('Redis Pub/Sub controller initialized');
     }
 
     onUserJoin = async (message) => {

@@ -7,7 +7,7 @@ var redisClient = require('./src/adapters/redis-client');
 const RedisPubSubController = require('./src/controllers/redis-ps-controller');
 
 async function startService() {
-    console.log("STARTING GAME STATE SERVICE...");
+    console.log("STARTING GAME SERVICE...");
     await redisClient.connect();
     var app = express();
     app.use(cors());
@@ -15,7 +15,7 @@ async function startService() {
     app.use(bodyParser.json());
     app.use("/api/v1", APIs);
     app.listen(configs.port, function () {
-        console.log("GAME STATE SERVICE STARTED");
+        console.log("GAME SERVICE STARTED");
     });
 }
 

@@ -2,6 +2,7 @@ var QuestionRepos = require('../repositories/QuestionRepos');
 var Game = require('../models/game').Game;
 var GameState = require('../models/game').GameState;
 var redisClient = require('../adapters/redis-client');
+const _ = require('lodash');
 
 class GameController {
     constructor(configs) {
@@ -18,10 +19,12 @@ class GameController {
             var questions = QuestionRepos.getRandomQuestions(no_questions);
             var gameId = (Math.round(Date.now())).toString(36);
             var game = new Game(gameId, game_name, questions);
+            questions = _.map(questions, (item) => JSON.stringify(item));
             // Store game data in Redis
             await redisClient.hSet('game:' + game.id, 'name', game_name);
-            await redisClient.hSet('game:' + game.id, 'state', 'ready'); // Set state to 'ready'
-            await redisClient.hSet('game:' + game.id, 'questions', JSON.stringify(questions));
+            await redisClient.hSet('game:' + game.id, 'no_questions', questions.length);
+            await redisClient.hSet('game:' + game.id, 'state', 'ready');
+            await redisClient.rPush('game:' + game.id + ':questions', questions);
             // await redisClient.sAdd('game:' + game.id + ':players', JSON.stringify([]));
 
             // Initialize leaderboard as an empty sorted set
