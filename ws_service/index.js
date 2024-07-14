@@ -19,7 +19,7 @@ let start_service = () => {
 	});
 
 	messageController.updateWebsocket(server.webSocket);
-	messageController.redisClient = server.redisClient;
+	messageController.updateRedisClient(server.redisClient);
 
 }
 

@@ -40,7 +40,7 @@ connectButton.addEventListener('click', () => {
 
     websocket.onmessage = (event) => {
         let data = JSON.parse(event.data);
-        let gameEvent = data['game-event'];
+        let gameEvent = data['game_event'];
         if (gameEvent === 'connected') {
             waitingScreen.style.display = 'none';
             questionScreen.style.display = 'block';

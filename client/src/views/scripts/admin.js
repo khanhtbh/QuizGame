@@ -53,7 +53,11 @@ createGameButton.addEventListener('click', async () => {
 
         ws.onmessage = (event) => {
             const leaderboard = JSON.parse(event.data);
-            updateLeaderboard(leaderboard);
+            let data = JSON.parse(event.data);
+            let gameEvent = data['game_event'];
+            if (gameEvent === 'leaderboard_update') { 
+                fetchLeaderboard();
+            }
         };
 
         ws.onerror = (error) => {
@@ -73,7 +77,7 @@ const fetchLeaderboard = async () => {
     const response = await fetch(`${configs.game_service_host}/api/v1/games/${gameId}/leaderboard`);
     if (response.ok) {
         const leaderboard = await response.json();
-        updateLeaderboard(leaderboard);
+        updateLeaderboard(leaderboard.data.leaderboard);
     } else {
         console.error('Error fetching leaderboard:', response.status);
     }
@@ -90,7 +94,7 @@ const updateLeaderboard = (leaderboard) => {
         const scoreCell = row.insertCell();
 
         rankCell.textContent = rank;
-        playerCell.textContent = entry.player;
+        playerCell.textContent = entry.value;
         scoreCell.textContent = entry.score;
 
         rank++;

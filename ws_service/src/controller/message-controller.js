@@ -1,3 +1,5 @@
+var WebSocket = require('../adapters/web_socket/web-socket');
+
 class MessageController {
     redisClient = null;
     webSocket = null;
@@ -6,6 +8,8 @@ class MessageController {
         this.handleAdminConnection = this.handleAdminConnection.bind(this);
 		this.parseConnectionParams = this.parseConnectionParams.bind(this);
         this.updateWebsocket = this.updateWebsocket.bind(this);
+		this.updateRedisClient = this.updateRedisClient.bind(this);
+		this.onLeaderboardUpdate = this.onLeaderboardUpdate.bind(this);
         /**
 		 * 
 		 * @type {Object}
@@ -14,6 +18,13 @@ class MessageController {
 		this.clients = {};
     }
 
+	updateRedisClient = (_redisClient) => {
+		this.redisClient = _redisClient;
+		this.subscriber = this.redisClient.duplicate();
+		this.subscriber.connect();
+		this.subscriber.subscribe('leaderboard_update', this.onLeaderboardUpdate);
+	}
+
     updateWebsocket = (_wss) => {
         this.webSocket = _wss;
         const me = this;
@@ -21,13 +32,14 @@ class MessageController {
 
 			let params = me.parseConnectionParams(incomingMsg);
 
+			var user_id = params.user_id;
+			var game_id = params.game;
+
 			if (params.role == 'admin') { }
-			else if (params.role == 'player') {
-				var user_id = params.user_id;
-				var game_id = params.game;
-				me.clients[`${game_id}:${user_id}`] = ws;
-                me.handleUserConnection(params);
-			}
+			else if (params.role == 'player') {	}
+
+			me.clients[`${game_id}:${user_id}`] = ws;
+            me.handleUserConnection(params);
 
 			ws.on('message', function incoming(message) {
 
@@ -56,6 +68,21 @@ class MessageController {
         console.log("handleUserConnection", cnnParams);
         this.redisClient.publish('user_join', JSON.stringify(cnnParams));
     }
+
+
+	onLeaderboardUpdate = (message) => {
+		console.log("onLeaderboardUpdate", message);
+		let params = JSON.parse(message);
+        let game_id = params.game_id;
+		for (const [key, value] of Object.entries(this.clients)) {
+			console.log("key-value", key, value);
+			if (key.indexOf(game_id) !== -1) {
+				value.send(JSON.stringify({
+					game_event: "leaderboard_update"
+				}));
+			}
+		}
+	}
 
     parseConnectionParams =(ws) => {
 		let cnnUrl = ws.url;

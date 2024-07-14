@@ -14,13 +14,16 @@ class RedisPubSubController {
         let params = JSON.parse(message);
         let user_id = params.user_id;
         let game_id = params.game;
+        let player_role = params.role;
+        if (player_role !== 'player') {
+            return;
+        }
         let gameExist = await redisClient.hGet('game:' + game_id, "name");
-        console.log("game exist", gameExist);
         if (gameExist !== null) {
             // this.redisClient.sAdd('game:' + game_id + ':players', [user_id]);
             this.redisClient.zAdd('game:' + game_id + ':leaderboard', {score: 0, value: user_id});
+            this.redisClient.publish('leaderboard_update', JSON.stringify({game_id: game_id}));
         }
-        
     }
 }
 const redisPsCtrl = new RedisPubSubController();
