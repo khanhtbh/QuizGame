@@ -15,6 +15,8 @@ const questionContainer = document.getElementById('question-container');
 const scoreElement = document.getElementById('player-score');
 const leaderboardList = document.getElementById('leaderboard-list');
 const submitAnswerButton = document.getElementById('submit-answer');
+const endGameContainer = document.getElementById('end-game-container');
+const leaderboardTable = document.getElementById('leaderboard-table').getElementsByTagName('tbody')[0];
 
 let websocket = null;
 var gameId = null;
@@ -23,6 +25,7 @@ var currentQuestionIdx = -1;
 var userId = `u_${(Math.round(Date.now())).toString(36)}`;
 var score = 0;
 var question = null;
+var quizzEnded = false;
 
 connectButton.addEventListener('click', async () => {
     gameId = gameIdInput.value;
@@ -93,6 +96,22 @@ connectButton.addEventListener('click', async () => {
                 }
             }));
         }
+        else if (gameEvent === 'user_end_quizz') {
+            quizzEnded = true;
+            questionContainer.style.display = 'none';   
+            endGameContainer.style.display = 'block';
+            const finalScoreElement = document.getElementById('final-score');
+            finalScoreElement.innerHTML = score;
+            const userIdElement = document.getElementById('user-id');
+            userIdElement.innerHTML = userId;
+            fetchLeaderboard();
+        }
+        else if (gameEvent === 'leaderboard_update') {
+            if (!quizzEnded) { 
+                return;
+            }
+            fetchLeaderboard();
+        }
     };
 
     websocket.onerror = (error) => {
@@ -138,3 +157,31 @@ function displayQuestion(question) {
     questionText.innerHTML = question.question;   
     questionTitle.innerHTML = `Question ${currentQuestionIdx + 1} of ${numberOfQuestions}`;
 }
+
+const fetchLeaderboard = async () => {
+    const response = await fetch(`${configs.game_service_host}/api/v1/games/${gameId}/leaderboard`);
+    if (response.ok) {
+        const leaderboard = await response.json();
+        updateLeaderboard(leaderboard.data.leaderboard);
+    } else {
+        console.error('Error fetching leaderboard:', response.status);
+    }
+};
+
+// Update Leaderboard (using data from WebSocket)
+const updateLeaderboard = (leaderboard) => {
+    leaderboardTable.innerHTML = ''; // Clear existing leaderboard
+    let rank = 1;
+    leaderboard.forEach(entry => {
+        const row = leaderboardTable.insertRow();
+        const rankCell = row.insertCell();
+        const playerCell = row.insertCell();
+        const scoreCell = row.insertCell();
+
+        rankCell.textContent = rank;
+        playerCell.textContent = entry.value;
+        scoreCell.textContent = entry.score;
+
+        rank++;
+    });
+};

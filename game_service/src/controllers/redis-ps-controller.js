@@ -40,14 +40,21 @@ class RedisPubSubController {
         current_question_no++;
         let totalQuestions = await redisClient.hGet('game:' + game_id, "no_questions");
         if (current_question_no >= totalQuestions) {
-            this.redisClient.publish('end_question', JSON.stringify({ user_id: user_id, game_id: game_id}));
+            console.log("onAnswerQuestion", message);
+            this.redisClient.publish('user_end_quizz', JSON.stringify({ user_id: user_id, game_id: game_id}));
             return;
         }
 
         var question = await this.redisClient.lIndex('game:' + game_id + ':questions', current_question_no);
         question = JSON.parse(question);
         delete question.answer;
-        this.redisClient.publish('send_question', JSON.stringify({ user_id: user_id, game_id: game_id, question_no: current_question_no, question: question }));
+        this.redisClient.publish('send_question', JSON.stringify({ 
+            user_id: user_id, 
+            game_id: game_id, 
+            question_no: 
+            current_question_no, 
+            question: question 
+        }));
     }
 
     onAnswerQuestion = async (message) => {

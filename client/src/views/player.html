@@ -2,48 +2,71 @@
 <html>
 
 <head>
-    <title>Multiplayer Game</title>
-    <link rel="stylesheet" href="/res/player.css">
+  <title>Multiplayer Game</title>
+  <link rel="stylesheet" href="/res/player.css">
 </head>
 
 <body>
-    <div class="container">
-        <div id="game-id-input">
-            <h2>Join Game</h2>
-            <div><input type="text" id="game-id" placeholder="Game ID"></div>
-            <div><input type="text" id="player-name" placeholder="Your Name"></div>
-            <button type="button" id="connect-button">Connect</button>
-        </div>
-        <div id="waiting-screen" style="display: none;">
-            <h2 class="waiting-screen">Waiting for game to start...</h2>
-        </div>
-        <div id="question-container" class="question-container" style="display: none;">
-            <div class="score">Score: <span id="player-score">0</span></div> <div class="question-content">
-              <h2 id="question-title">Question:</h2>
-              <p id="question-text"></p>
-              <div class="options">
-                <label class="option">
-                  <input type="radio" name="answer" id="option-a" value="A">
-                  <div id="option-a-text"></div>
-                </label>
-                <label class="option">
-                  <input type="radio" name="answer" id="option-b" value="B">
-                  <div id="option-b-text"></div>
-                </label>
-                <label class="option">
-                  <input type="radio" name="answer" id="option-c" value="C">
-                  <div id="option-c-text"></div>
-                </label>
-                <label class="option">
-                  <input type="radio" name="answer" id="option-d" value="D">
-                  <div id="option-d-text"></div>
-                </label>
-              </div>
-              <button type="button" id="submit-answer">Submit Answer</button>
-            </div>
-          </div>
+  <div class="container">
+    <div id="game-id-input">
+      <h2>Join Game</h2>
+      <div><input type="text" id="game-id" placeholder="Game ID"></div>
+      <div><input type="text" id="player-name" placeholder="Your Name"></div>
+      <button type="button" id="connect-button">Connect</button>
     </div>
-    <script src="./scripts/player.js"></script>
+    <div id="waiting-screen" style="display: none;">
+      <h2 class="waiting-screen">Waiting for game to start...</h2>
+    </div>
+    <div id="question-container" class="question-container" style="display: none;">
+      <div class="score">Score: <span id="player-score">0</span></div>
+      <div class="question-content">
+        <h2 id="question-title">Question:</h2>
+        <p id="question-text"></p>
+        <div class="options">
+          <label class="option">
+            <input type="radio" name="answer" id="option-a" value="A">
+            <div id="option-a-text"></div>
+          </label>
+          <label class="option">
+            <input type="radio" name="answer" id="option-b" value="B">
+            <div id="option-b-text"></div>
+          </label>
+          <label class="option">
+            <input type="radio" name="answer" id="option-c" value="C">
+            <div id="option-c-text"></div>
+          </label>
+          <label class="option">
+            <input type="radio" name="answer" id="option-d" value="D">
+            <div id="option-d-text"></div>
+          </label>
+        </div>
+        <button type="button" id="submit-answer">Submit Answer</button>
+      </div>
+    </div>
+
+    <div class="end-game-container" id="end-game-container" style="display: none;">
+      <h2>Quizz Over!</h2>
+      <div class="score">Your ID: <span id="user-id"></span></div>
+      <div class="score">Your Score: <span id="final-score"></span></div>
+      <div class="leaderboard">
+        <h3>Leaderboard:</h3>
+        <div id="leaderboard-entries">
+          <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="./scripts/player.js"></script>
 </body>
 
 </html>

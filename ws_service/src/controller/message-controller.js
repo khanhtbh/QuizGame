@@ -8,10 +8,12 @@ class MessageController {
 		this.parseConnectionParams = this.parseConnectionParams.bind(this);
 		this.updateWebsocket = this.updateWebsocket.bind(this);
 		this.updateRedisClient = this.updateRedisClient.bind(this);
+		this.sendEventToClients = this.sendEventToClients.bind(this);
 
 		this.onLeaderboardUpdate = this.onLeaderboardUpdate.bind(this);
 		this.onSendQuestion = this.onSendQuestion.bind(this);
 		this.onSendAnswerResult = this.onSendAnswerResult.bind(this);
+		this.onUserEndQuizz = this.onUserEndQuizz.bind(this);
 
 		this.handleGetQuestion = this.handleGetQuestion.bind(this);
 		this.handleAnswerQuestion = this.handleAnswerQuestion.bind(this);
@@ -30,7 +32,7 @@ class MessageController {
 		this.subscriber.subscribe('leaderboard_update', this.onLeaderboardUpdate);
 		this.subscriber.subscribe('send_question', this.onSendQuestion);
 		this.subscriber.subscribe('send_answer_result', this.onSendAnswerResult);
-
+		this.subscriber.subscribe('user_end_quizz', this.onUserEndQuizz);
 	}
 
 	updateWebsocket = (_wss) => {
@@ -116,15 +118,7 @@ class MessageController {
 		let params = JSON.parse(message);
 		let game_id = params.game_id;
 		let user_id = params.user_id;
-		for (const [key, value] of Object.entries(this.clients)) {
-			console.log("key-value", key, value);
-			if (key.indexOf(`${game_id}:${user_id}`) !== -1) {
-				value.send(JSON.stringify({
-					game_event: "receive_question",
-					data: params
-				}));
-			}
-		}
+		this.sendEventToClients(game_id, user_id, 'receive_question', params);
 	}
 
 	onSendAnswerResult = (message) => {
@@ -132,14 +126,24 @@ class MessageController {
 		let params = JSON.parse(message);
 		let game_id = params.game_id;
 		let user_id = params.user_id;
-		let awardScore = params.awardScore;
-		let correctAnswer = params.correct_answer
+		this.sendEventToClients(game_id, user_id, 'answer_result', params);
+	}
+
+	onUserEndQuizz = (message) => {
+		console.log("onUserEndQuizz", message);	
+		let params = JSON.parse(message);
+		let game_id = params.game_id;
+		let user_id = params.user_id;
+		this.sendEventToClients(game_id, user_id, 'user_end_quizz', params);
+	}
+
+	sendEventToClients = (game_id, user_id, event, data) => {
+		console.log("sendEventToClients", event, data);
 		for (const [key, value] of Object.entries(this.clients)) {
-			console.log("key-value", key, value);
 			if (key.indexOf(`${game_id}:${user_id}`) !== -1) {
 				value.send(JSON.stringify({
-					game_event: "answer_result",
-					data: params
+					game_event: event,
+					data: data
 				}));
 			}
 		}
