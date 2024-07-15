@@ -41,7 +41,7 @@ class RedisPubSubController {
         let totalQuestions = await redisClient.hGet('game:' + game_id, "no_questions");
         if (current_question_no >= totalQuestions) {
             console.log("onAnswerQuestion", message);
-            this.redisClient.publish('user_end_quizz', JSON.stringify({ user_id: user_id, game_id: game_id}));
+            this.redisClient.publish('user_end_quiz', JSON.stringify({ user_id: user_id, game_id: game_id}));
             return;
         }
 

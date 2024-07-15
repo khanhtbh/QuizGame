@@ -13,7 +13,7 @@ class MessageController {
 		this.onLeaderboardUpdate = this.onLeaderboardUpdate.bind(this);
 		this.onSendQuestion = this.onSendQuestion.bind(this);
 		this.onSendAnswerResult = this.onSendAnswerResult.bind(this);
-		this.onUserEndQuizz = this.onUserEndQuizz.bind(this);
+		this.onUserEndQuiz = this.onUserEndQuiz.bind(this);
 
 		this.handleGetQuestion = this.handleGetQuestion.bind(this);
 		this.handleAnswerQuestion = this.handleAnswerQuestion.bind(this);
@@ -33,7 +33,7 @@ class MessageController {
 		this.subscriber.subscribe('leaderboard_update', this.onLeaderboardUpdate);
 		this.subscriber.subscribe('send_question', this.onSendQuestion);
 		this.subscriber.subscribe('send_answer_result', this.onSendAnswerResult);
-		this.subscriber.subscribe('user_end_quizz', this.onUserEndQuizz);
+		this.subscriber.subscribe('user_end_quiz', this.onUserEndQuiz);
 	}
 
 	updateWebsocket = (_wss) => {
@@ -108,7 +108,7 @@ class MessageController {
 			console.log("key-value", key, value);
 			if (key.indexOf(game_id) !== -1) {
 				value.send(JSON.stringify({
-					game_event: "user_end_quizz"
+					game_event: "user_end_quiz"
 				}));
 				value.close();
 			}
@@ -147,12 +147,12 @@ class MessageController {
 		this.sendEventToClients(game_id, user_id, 'answer_result', params);
 	}
 
-	onUserEndQuizz = (message) => {
-		console.log("onUserEndQuizz", message);	
+	onUserEndQuiz = (message) => {
+		console.log("onUserEndQuiz", message);	
 		let params = JSON.parse(message);
 		let game_id = params.game_id;
 		let user_id = params.user_id;
-		this.sendEventToClients(game_id, user_id, 'user_end_quizz', params);
+		this.sendEventToClients(game_id, user_id, 'user_end_quiz', params);
 	}
 
 	sendEventToClients = (game_id, user_id, event, data) => {

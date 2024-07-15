@@ -25,7 +25,7 @@ var currentQuestionIdx = -1;
 var userId = `u_${(Math.round(Date.now())).toString(36)}`;
 var score = 0;
 var question = null;
-var quizzEnded = false;
+var quizEnded = false;
 
 connectButton.addEventListener('click', async () => {
     gameId = gameIdInput.value;
@@ -106,8 +106,8 @@ const connectWs = () => {
                 }
             }));
         }
-        else if (gameEvent === 'user_end_quizz') {
-            quizzEnded = true;
+        else if (gameEvent === 'user_end_quiz') {
+            quizEnded = true;
             questionContainer.style.display = 'none';   
             endGameContainer.style.display = 'block';
             const finalScoreElement = document.getElementById('final-score');
@@ -117,7 +117,7 @@ const connectWs = () => {
             fetchLeaderboard();
         }
         else if (gameEvent === 'leaderboard_update') {
-            if (!quizzEnded) { 
+            if (!quizEnded) { 
                 return;
             }
             fetchLeaderboard();
@@ -130,7 +130,7 @@ const connectWs = () => {
 
     websocket.onclose = () => {
         console.log('WebSocket connection closed');
-        if (!quizzEnded) {
+        if (!quizEnded) {
             // game not end, close due to server issue, try to connect again
             setTimeout(() => {
                 connectWs();    
