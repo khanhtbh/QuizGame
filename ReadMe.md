@@ -85,7 +85,7 @@ This is a project to study event driven architecture, aim to build a real-time q
 + answer_result
 
 ## LICENSE
-ICS
+ISC
 
 
 
