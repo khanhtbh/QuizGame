@@ -21,6 +21,8 @@ This is a project to study event driven architecture, aim to build a real-time q
 - Score
 - Observe leaderboard
 
+Video demo at ./document/demo.mov
+
 <video src="./document/demo.mov" width="640" height="480" controls></video>
 
 ## Development
