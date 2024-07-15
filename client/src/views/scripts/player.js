@@ -64,6 +64,7 @@ const connectWs = () => {
         let data = JSON.parse(event.data);
         let gameEvent = data['game_event'];
         let eventData = data["data"];
+        console.log(gameEvent, eventData);
         if (gameEvent === 'connected') {
             if (currentQuestionIdx !== -1) { // retry connection, current question already received
                 waitingScreen.style.display = 'none';

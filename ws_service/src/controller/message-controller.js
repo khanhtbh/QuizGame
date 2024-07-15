@@ -14,6 +14,7 @@ class MessageController {
 		this.onSendQuestion = this.onSendQuestion.bind(this);
 		this.onSendAnswerResult = this.onSendAnswerResult.bind(this);
 		this.onUserEndQuiz = this.onUserEndQuiz.bind(this);
+		this.onServiceEndGame = this.onServiceEndGame.bind(this);
 
 		this.handleGetQuestion = this.handleGetQuestion.bind(this);
 		this.handleAnswerQuestion = this.handleAnswerQuestion.bind(this);
@@ -34,6 +35,7 @@ class MessageController {
 		this.subscriber.subscribe('send_question', this.onSendQuestion);
 		this.subscriber.subscribe('send_answer_result', this.onSendAnswerResult);
 		this.subscriber.subscribe('user_end_quiz', this.onUserEndQuiz);
+		this.subscriber.subscribe('service_end_game', this.onServiceEndGame);
 	}
 
 	updateWebsocket = (_wss) => {
@@ -103,17 +105,7 @@ class MessageController {
 
 	handleEndGame = (commandData) => {
 		console.log("handleEndGame", commandData);
-		let game_id = commandData.game_id;
-		for (const [key, value] of Object.entries(this.clients)) {
-			console.log("key-value", key, value);
-			if (key.indexOf(game_id) !== -1) {
-				value.send(JSON.stringify({
-					game_event: "user_end_quiz"
-				}));
-				value.close();
-			}
-		}
-		this.clients = {};
+		this.redisClient.publish('end_game', JSON.stringify(commandData));
 	}
 
 
@@ -148,11 +140,28 @@ class MessageController {
 	}
 
 	onUserEndQuiz = (message) => {
-		console.log("onUserEndQuiz", message);	
+		console.log("onUserEndQuiz", message);
 		let params = JSON.parse(message);
 		let game_id = params.game_id;
 		let user_id = params.user_id;
 		this.sendEventToClients(game_id, user_id, 'user_end_quiz', params);
+	}
+
+	onServiceEndGame = (message) => {
+		console.log("onServiceEndGame", message);
+		let params = JSON.parse(message);
+		let game_id = params.game_id;
+		for (const [key, value] of Object.entries(this.clients)) {
+			console.log("key-value", key, value);
+			if (key.indexOf(game_id) !== -1) {
+				value.send(JSON.stringify({
+					game_event: "user_end_quiz"
+				}));
+				value.close();
+			}
+		}
+
+		this.clients = {};
 	}
 
 	sendEventToClients = (game_id, user_id, event, data) => {

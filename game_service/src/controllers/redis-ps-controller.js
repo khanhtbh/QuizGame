@@ -4,6 +4,7 @@ class RedisPubSubController {
         this.onUserJoin = this.onUserJoin.bind(this);
         this.onGetQuestion = this.onGetQuestion.bind(this);
         this.onAnswerQuestion = this.onAnswerQuestion.bind(this);
+        this.onEndGame = this.onEndGame.bind(this);
 
         this.redisClient = redisClient;
         this.subscriber = redisClient.duplicate();
@@ -11,11 +12,12 @@ class RedisPubSubController {
         this.subscriber.subscribe('user_join', this.onUserJoin);
         this.subscriber.subscribe('get_question', this.onGetQuestion);
         this.subscriber.subscribe('answer_question', this.onAnswerQuestion);
+        this.subscriber.subscribe('end_game', this.onEndGame);
 
     }
 
     onUserJoin = async (message) => {
-        console.log("onUserJoin", message);
+        console.log('onUserJoin', message);
         let params = JSON.parse(message);
         let user_id = params.user_id;
         let game_id = params.game_id;
@@ -23,7 +25,7 @@ class RedisPubSubController {
         if (player_role !== 'player') {
             return;
         }
-        let gameExist = await redisClient.hGet('game:' + game_id, "name");
+        let gameExist = await redisClient.hGet('game:' + game_id, 'name');
         if (gameExist !== null) {
             // this.redisClient.sAdd('game:' + game_id + ':players', [user_id]);
             this.redisClient.zAdd('game:' + game_id + ':leaderboard', { score: 0, value: user_id });
@@ -32,15 +34,15 @@ class RedisPubSubController {
     }
 
     onGetQuestion = async (message) => {
-        console.log("onGetQuestion", message);
+        console.log('onGetQuestion', message);
         let params = JSON.parse(message);
         let user_id = params.user_id;
         let game_id = params.game_id;
         var current_question_no = params.current_question_no;
         current_question_no++;
-        let totalQuestions = await redisClient.hGet('game:' + game_id, "no_questions");
+        let totalQuestions = await redisClient.hGet('game:' + game_id, 'no_questions');
         if (current_question_no >= totalQuestions) {
-            console.log("onAnswerQuestion", message);
+            console.log('onAnswerQuestion', message);
             this.redisClient.publish('user_end_quiz', JSON.stringify({ user_id: user_id, game_id: game_id}));
             return;
         }
@@ -58,7 +60,7 @@ class RedisPubSubController {
     }
 
     onAnswerQuestion = async (message) => {
-        console.log("onAnswerQuestion", message);
+        console.log('onAnswerQuestion', message);
         let params = JSON.parse(message);
         let user_id = params.user_id;
         let game_id = params.game_id;
@@ -79,6 +81,22 @@ class RedisPubSubController {
             award_score: awardScore,
             correct_answer: question.answer 
         }));
+    }
+
+    onEndGame = async (message) => {
+        console.log('onEndGame', message);
+        let params = JSON.parse(message);
+        let game_id = params.game_id;
+        this.redisClient.publish('service_end_game', JSON.stringify({ game_id: game_id}));
+
+        //Clear the game from redis
+        setTimeout(() => {
+            this.redisClient.hDel('game:' + game_id, 'name');
+            this.redisClient.hDel('game:' + game_id, 'no_questions');
+            this.redisClient.hDel('game:' + game_id, 'state');
+            this.redisClient.del('game:' + game_id + ':questions');
+            this.redisClient.del('game:' + game_id + ':leaderboard');
+        }, 5000);
     }
 }
 const redisPsCtrl = new RedisPubSubController();

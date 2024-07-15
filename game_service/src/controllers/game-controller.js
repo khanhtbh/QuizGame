@@ -16,7 +16,7 @@ class GameController {
     static async createGame(req, res) {
         var { game_name, no_questions } = req.body;
         if (!game_name || !no_questions || no_questions <= 0) {
-            res.status(400).send("Bad Request");
+            res.status(400).send('Bad Request');
             return;
         }
         try {
@@ -29,11 +29,6 @@ class GameController {
             await redisClient.hSet('game:' + game.id, 'no_questions', questions.length);
             await redisClient.hSet('game:' + game.id, 'state', 'ready');
             await redisClient.rPush('game:' + game.id + ':questions', questions);
-            // await redisClient.sAdd('game:' + game.id + ':players', JSON.stringify([]));
-
-            // Initialize leaderboard as an empty sorted set
-            // await redisClient.zAdd('game:' + game.id + ':leaderboard', {score: 0, value: "dummy"});
-            // Respond with game ID
             res.status(200).json({ 
                 success: true,
                 code: 1,
@@ -44,8 +39,8 @@ class GameController {
             });
         }
         catch (err) {
-            console.log("API new game, err", err);
-            res.status(500).send("Internal Server Error");
+            console.log('API new game, err', err);
+            res.status(500).send('Internal Server Error');
         }
     }
 
@@ -54,7 +49,7 @@ class GameController {
     static async getGame(req, res) {
         var { game_id } = req.params;
         if (!game_id) {
-            res.status(400).send("Bad Request");
+            res.status(400).send('Bad Request');
             return;
         }
         try {
@@ -63,13 +58,13 @@ class GameController {
             var state = await redisClient.hGet('game:' + game_id, 'state');
             // var questions = await redisClient.lRange('game:' + game_id + ':questions', 0, -1);
             if (gameName === null || noQuestions === null || state === null) {
-                res.status(404).send("Not Found");
+                res.status(404).send('Not Found');
                 return;
             }   
         }
         catch (err) {
-            console.log("API get game, err", err);
-            res.status(500).send("Internal Server Error");
+            console.log('API get game, err', err);
+            res.status(500).send('Internal Server Error');
             return;
         }
         res.status(200).json({ 
@@ -88,21 +83,21 @@ class GameController {
     static async getLeaderboard(req, res) {
         var { game_id } = req.params;
         if (!game_id) {
-            res.status(400).send("Bad Request");
+            res.status(400).send('Bad Request');
             return;
         }
         try {
             var gameName = await redisClient.hGet('game:' + game_id, 'name');
             if (gameName === null) {
-                res.status(404).send("Not Found");
+                res.status(404).send('Not Found');
                 return;
             }
             var leaderboard = await redisClient.zRangeByScoreWithScores('game:' + game_id + ':leaderboard', 0, 10);
             leaderboard = _.reverse(leaderboard);
         } 
         catch (err) {
-            console.log("API get game, err", err);
-            res.status(500).send("Internal Server Error");
+            console.log('API get game, err', err);
+            res.status(500).send('Internal Server Error');
             return;
         }
         res.status(200).json({ 
