@@ -119,8 +119,8 @@ endGameButton.addEventListener('click', async () => {
     ws.send(JSON.stringify({ 
         command: 'end_game',
         data: {
-            user_id: 'admin',
-            game_id: gameId
+            game_id: gameId,
+            user_id: 'admin'
         }
     }));
     fetchLeaderboard();

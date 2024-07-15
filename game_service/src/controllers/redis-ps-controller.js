@@ -5,6 +5,8 @@ class RedisPubSubController {
         this.onGetQuestion = this.onGetQuestion.bind(this);
         this.onAnswerQuestion = this.onAnswerQuestion.bind(this);
         this.onEndGame = this.onEndGame.bind(this);
+        this.leaderElectionExecutor = this.leaderElectionExecutor.bind(this);
+        this.leaderElectionKeyForMsg = this.leaderElectionKeyForMsg.bind(this);
 
         this.redisClient = redisClient;
         this.subscriber = redisClient.duplicate();
@@ -18,85 +20,131 @@ class RedisPubSubController {
 
     onUserJoin = async (message) => {
         console.log('onUserJoin', message);
-        let params = JSON.parse(message);
-        let user_id = params.user_id;
-        let game_id = params.game_id;
-        let player_role = params.role;
-        if (player_role !== 'player') {
-            return;
-        }
-        let gameExist = await redisClient.hGet('game:' + game_id, 'name');
-        if (gameExist !== null) {
-            // this.redisClient.sAdd('game:' + game_id + ':players', [user_id]);
-            this.redisClient.zAdd('game:' + game_id + ':leaderboard', { score: 0, value: user_id });
-            this.redisClient.publish('leaderboard_update', JSON.stringify({ game_id: game_id }));
-        }
+        let key = this.leaderElectionKeyForMsg('onUserJoin', message);
+        let me = this;
+        this.leaderElectionExecutor(key, async () => {
+            let params = JSON.parse(message);
+            let user_id = params.user_id;
+            let game_id = params.game_id;
+            let player_role = params.role;
+            if (player_role !== 'player') {
+                return;
+            }
+            let gameExist = await redisClient.hGet('game:' + game_id, 'name');
+            if (gameExist !== null) {
+                // this.redisClient.sAdd('game:' + game_id + ':players', [user_id]);
+                me.redisClient.zAdd('game:' + game_id + ':leaderboard', { score: 0, value: user_id });
+                me.redisClient.publish('leaderboard_update', JSON.stringify({ game_id: game_id }));
+            }
+        });
+
     }
 
     onGetQuestion = async (message) => {
         console.log('onGetQuestion', message);
-        let params = JSON.parse(message);
-        let user_id = params.user_id;
-        let game_id = params.game_id;
-        var current_question_no = params.current_question_no;
-        current_question_no++;
-        let totalQuestions = await redisClient.hGet('game:' + game_id, 'no_questions');
-        if (current_question_no >= totalQuestions) {
+        let key = this.leaderElectionKeyForMsg('onGetQuestion', message);
+        let me = this;
+        this.leaderElectionExecutor(key, async () => {
+            let params = JSON.parse(message);
+            let user_id = params.user_id;
+            let game_id = params.game_id;
+            var current_question_no = params.current_question_no;
+            current_question_no++;
+            let totalQuestions = await me.redisClient.hGet('game:' + game_id, 'no_questions');
             console.log('onAnswerQuestion', message);
-            this.redisClient.publish('user_end_quiz', JSON.stringify({ user_id: user_id, game_id: game_id}));
-            return;
-        }
+            if (current_question_no >= totalQuestions) {
+                me.redisClient.publish('user_end_quiz', JSON.stringify({ user_id: user_id, game_id: game_id }));
+                return;
+            }
 
-        var question = await this.redisClient.lIndex('game:' + game_id + ':questions', current_question_no);
-        question = JSON.parse(question);
-        delete question.answer;
-        this.redisClient.publish('send_question', JSON.stringify({ 
-            user_id: user_id, 
-            game_id: game_id, 
-            question_no: 
-            current_question_no, 
-            question: question 
-        }));
+            var question = await me.redisClient.lIndex('game:' + game_id + ':questions', current_question_no);
+            question = JSON.parse(question);
+            delete question.answer;
+            me.redisClient.publish('send_question', JSON.stringify({
+                user_id: user_id,
+                game_id: game_id,
+                question_no:
+                    current_question_no,
+                question: question
+            }));
+        });
+
     }
 
     onAnswerQuestion = async (message) => {
         console.log('onAnswerQuestion', message);
-        let params = JSON.parse(message);
-        let user_id = params.user_id;
-        let game_id = params.game_id;
-        var current_question_no = params.current_question_no;
-        var answer = params.answer;
-        var question = await this.redisClient.lIndex('game:' + game_id + ':questions', JSON.stringify(current_question_no));
-        question = JSON.parse(question);
-        var awardScore = 0;
-        if (question.answer === answer) {
-            awardScore = 1;
-            this.redisClient.zIncrBy('game:' + game_id + ':leaderboard', 1, user_id);
-            this.redisClient.publish('leaderboard_update', JSON.stringify({ game_id: game_id }));
-        }
-        this.redisClient.publish('send_answer_result', JSON.stringify({ 
-            user_id: user_id, 
-            game_id: game_id, 
-            question_no: current_question_no, 
-            award_score: awardScore,
-            correct_answer: question.answer 
-        }));
+        let key = this.leaderElectionKeyForMsg('onAnswerQuestion', message);
+        let me = this;
+        this.leaderElectionExecutor(key, async () => {
+            let params = JSON.parse(message);
+            let user_id = params.user_id;
+            let game_id = params.game_id;
+            var current_question_no = params.current_question_no;
+            var answer = params.answer;
+            var question = await me.redisClient.lIndex('game:' + game_id + ':questions', JSON.stringify(current_question_no));
+            question = JSON.parse(question);
+            var awardScore = 0;
+            if (question.answer === answer) {
+                awardScore = 1;
+                me.redisClient.zIncrBy('game:' + game_id + ':leaderboard', 1, user_id);
+                me.redisClient.publish('leaderboard_update', JSON.stringify({ game_id: game_id }));
+            }
+            me.redisClient.publish('send_answer_result', JSON.stringify({
+                user_id: user_id,
+                game_id: game_id,
+                question_no: current_question_no,
+                award_score: awardScore,
+                correct_answer: question.answer
+            }));
+        });
+        
     }
 
     onEndGame = async (message) => {
         console.log('onEndGame', message);
-        let params = JSON.parse(message);
-        let game_id = params.game_id;
-        this.redisClient.publish('service_end_game', JSON.stringify({ game_id: game_id}));
+        let key = this.leaderElectionKeyForMsg('onEndGame', message);
+        let me = this;
+        this.leaderElectionExecutor(key, async () => {
+            let params = JSON.parse(message);
+            let game_id = params.game_id;
+            me.redisClient.publish('service_end_game', JSON.stringify({ game_id: game_id }));
 
-        //Clear the game from redis
-        setTimeout(() => {
-            this.redisClient.hDel('game:' + game_id, 'name');
-            this.redisClient.hDel('game:' + game_id, 'no_questions');
-            this.redisClient.hDel('game:' + game_id, 'state');
-            this.redisClient.del('game:' + game_id + ':questions');
-            this.redisClient.del('game:' + game_id + ':leaderboard');
-        }, 5000);
+            //Clear the game from redis
+            setTimeout(() => {
+                me.redisClient.hDel('game:' + game_id, 'name');
+                me.redisClient.hDel('game:' + game_id, 'no_questions');
+                me.redisClient.hDel('game:' + game_id, 'state');
+                me.redisClient.del('game:' + game_id + ':questions');
+                me.redisClient.del('game:' + game_id + ':leaderboard');
+            }, 5000);
+        });
+
+    }
+
+    leaderElectionKeyForMsg = (channel, message) => {
+        let params = JSON.parse(message);
+        var key = 'LOCK_' + channel;
+        for (const [_, value] of Object.entries(params)) {
+            key += '_' + value;
+        }
+        return key;
+    }
+
+    leaderElectionExecutor = async (key, fn) => {
+        try {
+            console.log('leaderElectionExecutor', key);
+            const acquired = await this.redisClient.setNX(key, "1");
+            if (acquired) {
+                await fn();
+                await this.redisClient.del(key);
+            }
+            else {
+                console.log('Not leader for', key);
+            }
+        }
+        catch (err) {
+            console.log('leaderElectionExecutor', err);
+        }
     }
 }
 const redisPsCtrl = new RedisPubSubController();
