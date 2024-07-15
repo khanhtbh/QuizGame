@@ -32,7 +32,6 @@ class RedisPubSubController {
             }
             let gameExist = await redisClient.hGet('game:' + game_id, 'name');
             if (gameExist !== null) {
-                // this.redisClient.sAdd('game:' + game_id + ':players', [user_id]);
                 me.redisClient.zAdd('game:' + game_id + ':leaderboard', { score: 0, value: user_id });
                 me.redisClient.publish('leaderboard_update', JSON.stringify({ game_id: game_id }));
             }
