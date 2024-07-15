@@ -47,6 +47,11 @@ connectButton.addEventListener('click', async () => {
     gameInfoData = await response.json();
     numberOfQuestions = gameInfoData.data.no_questions;
     // Connect to WebSocket
+    connectWs();
+
+});
+
+const connectWs = () => {
     websocket = new WebSocket(`${configs.websocket_host}?game_id=${gameId}&role=player&player_name=${playerName.value}&user_id=${userId}`);
 
     websocket.onopen = () => {
@@ -60,6 +65,11 @@ connectButton.addEventListener('click', async () => {
         let gameEvent = data['game_event'];
         let eventData = data["data"];
         if (gameEvent === 'connected') {
+            if (currentQuestionIdx !== -1) { // retry connection, current question already received
+                waitingScreen.style.display = 'none';
+                questionContainer.style.display = 'block';   
+                return;
+            }
             gameIdInput.style.display = 'none';
             waitingScreen.style.display = 'block';
             websocket.send(JSON.stringify({ 
@@ -120,10 +130,15 @@ connectButton.addEventListener('click', async () => {
 
     websocket.onclose = () => {
         console.log('WebSocket connection closed');
+        if (!quizzEnded) {
+            // game not end, close due to server issue, try to connect again
+            setTimeout(() => {
+                connectWs();    
+            }, 5000);
+            
+        }
     };
-
-});
-
+}
 
 submitAnswerButton.addEventListener('click', () => {
     // Get the selected answer

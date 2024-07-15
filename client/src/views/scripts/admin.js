@@ -42,35 +42,48 @@ createGameButton.addEventListener('click', async () => {
         adminSection.classList.add('hidden');
         leaderboardSection.classList.remove('hidden');
 
-        // Connect to WebSocket
-        ws = new WebSocket(`${configs.websocket_host}?game_id=${gameId}&role=admin`); // Replace with your server URL
-
-        // Handle WebSocket connection events
-        ws.onopen = () => {
-            console.log('WebSocket connection opened');
-            fetchLeaderboard();
-        };
-
-        ws.onmessage = (event) => {
-            const leaderboard = JSON.parse(event.data);
-            let data = JSON.parse(event.data);
-            let gameEvent = data['game_event'];
-            if (gameEvent === 'leaderboard_update') { 
-                fetchLeaderboard();
-            }
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        ws.onclose = () => {
-            console.log('WebSocket connection closed');
-        };
+        connectWs();
+        
     } else {
         console.error('Error creating game:', response.status);
     }
 });
+
+const connectWs = () => {
+    // Connect to WebSocket
+    ws = new WebSocket(`${configs.websocket_host}?game_id=${gameId}&role=admin`); // Replace with your server URL
+
+    // Handle WebSocket connection events
+    ws.onopen = () => {
+        console.log('WebSocket connection opened');
+        fetchLeaderboard();
+    };
+
+    ws.onmessage = (event) => {
+        const leaderboard = JSON.parse(event.data);
+        let data = JSON.parse(event.data);
+        let gameEvent = data['game_event'];
+        if (gameEvent === 'leaderboard_update') { 
+            fetchLeaderboard();
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        ws.close();
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket connection closed');
+        if (!endGameButton.disabled) {
+            // game not end, close due to server issue, try to connect again
+            setTimeout(() => {
+                connectWs();    
+            }, 5000);
+            
+        }
+    };
+};
 
 // Fetch Leaderboard
 const fetchLeaderboard = async () => {
